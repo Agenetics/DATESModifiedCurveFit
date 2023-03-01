@@ -5,6 +5,7 @@
 #' @param directorylist List of directories with DATES output. Use list.dirs function on R to generate. Ensure all folders have DATES output. Required field.
 #' @param foldernameformat NoFormat = any folder name of choice, any other input = T1_T2_adm1_adm2 format for folder name where T1,T2 are admixture times (from simulation) and adm1,2 are admixture percentages in each wave (from simulation). Default = "NoFormat"
 #' @param outputfilename Optional: Specify file name. Output is written to file in TSV format.
+#' @param distance Maximum distance till which to curve fit, in cM. Default 15 cM.
 #' @return A dataframe with DATES exponential fitted output for 1 admixture (and 2 in case of p-value below threshold)
 #' @examples 
 #' out1 <- runfits(pvalue=0.001,directorylist=dirs,foldernameformat="NoFormat");
@@ -12,7 +13,7 @@
 #' @export
 
 
-runfits<-function(pvalue=0.001,directorylist=NULL,foldernameformat="NoFormat",outputfilename=NULL){
+runfits<-function(pvalue=0.001,directorylist=NULL,foldernameformat="NoFormat",outputfilename=NULL,distance=15){
 
   
   out1=data.frame()
@@ -104,7 +105,7 @@ twofit<-function(prefix,aa=0.05,bb=0.04, tt=125,t22=10){
     strr=gsub(" ", "", strr)
     spgt[[i]]=read.table(strr)
     spgt[[i]]=spgt[[i]][,-c(2,4,5)]
-    spgt[[i]]=spgt[[i]][5:250,]
+    spgt[[i]]=spgt[[i]][5:10*distance,]
   }
   
   nonlin2 <- function(d, a,b, t,t2) { a * exp(d/100*(-t+1)) + b * exp(d/100*(-t2+1))}
@@ -134,10 +135,9 @@ twofit<-function(prefix,aa=0.05,bb=0.04, tt=125,t22=10){
   hello$residual=residuals(nlsfit)
   out1$directfit=coef(nlsfit)
   
-  hello=hello[c(1:246),]
+  hello=hello[c(1:10*distance-4),]
   out1$shapiro=shapiro.test(hello$residual)
-  out1$LL=-246/2*(log(2*pi)+1-log(246)+log(sum(hello$residual^2)))
-  
+
   out1$model=nlsfit
   out1$outdata=hello
   
@@ -165,7 +165,7 @@ singlefit<-function(prefix,aa=0.03,tt=10){
     strr=gsub(" ", "", strr)
     spgt[[i]]=read.table(strr)
     spgt[[i]]=spgt[[i]][,-c(2,4,5)]
-    spgt[[i]]=spgt[[i]][5:250,]
+    spgt[[i]]=spgt[[i]][5:10*distance,]
   }
   ## 
   
@@ -196,10 +196,8 @@ singlefit<-function(prefix,aa=0.03,tt=10){
   hello$fit=predict(nlsfit)
   hello$residual=residuals(nlsfit)
   out1$directfit=coef(nlsfit)
-  hello=hello[c(1:246),]
+  hello=hello[c(1:10*distance-4),]
   out1$shapiro=shapiro.test(hello$residual)
-  out1$ks=ks.test(hello$residual,rnorm(length(hello$residual),0,sd(hello$residual)))
-  out1$LL=-246/2*(log(2*pi)+1-log(246)+log(sum(hello$residual^2)))
   out1$model=nlsfit
   out1$outdata=hello
   

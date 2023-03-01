@@ -8,7 +8,8 @@ runfits(
   pvalue = 0.001,
   directorylist = NULL,
   foldernameformat = "NoFormat",
-  outputfilename = NULL
+  outputfilename = NULL,
+  distance = 15
 )
 }
 \arguments{
@@ -19,6 +20,8 @@ runfits(
 \item{foldernameformat}{NoFormat = any folder name of choice, any other input = T1_T2_adm1_adm2 format for folder name where T1,T2 are admixture times (from simulation) and adm1,2 are admixture percentages in each wave (from simulation). Default = "NoFormat"}
 
 \item{outputfilename}{Optional: Specify file name. Output is written to file in TSV format.}
+
+\item{distance}{Maximum distance till which to curve fit, in cM. Default 15 cM.}
 }
 \value{
 A dataframe with DATES exponential fitted output for 1 admixture (and 2 in case of p-value below threshold)
