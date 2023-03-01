@@ -104,7 +104,7 @@ twofit<-function(prefix,aa=0.05,bb=0.04, tt=125,t22=10){
     strr=gsub(" ", "", strr)
     spgt[[i]]=read.table(strr)
     spgt[[i]]=spgt[[i]][,-c(2,4,5)]
-    spgt[[i]]=spgt[[i]][5:300,]
+    spgt[[i]]=spgt[[i]][5:250,]
   }
   
   nonlin2 <- function(d, a,b, t,t2) { a * exp(d/100*(-t+1)) + b * exp(d/100*(-t2+1))}
@@ -134,9 +134,9 @@ twofit<-function(prefix,aa=0.05,bb=0.04, tt=125,t22=10){
   hello$residual=residuals(nlsfit)
   out1$directfit=coef(nlsfit)
   
-  hello=hello[c(1:296),]
+  hello=hello[c(1:246),]
   out1$shapiro=shapiro.test(hello$residual)
-  out1$LL=-296/2*(log(2*pi)+1-log(296)+log(sum(hello$residual^2)))
+  out1$LL=-246/2*(log(2*pi)+1-log(246)+log(sum(hello$residual^2)))
   
   out1$model=nlsfit
   out1$outdata=hello
@@ -165,7 +165,7 @@ singlefit<-function(prefix,aa=0.03,tt=10){
     strr=gsub(" ", "", strr)
     spgt[[i]]=read.table(strr)
     spgt[[i]]=spgt[[i]][,-c(2,4,5)]
-    spgt[[i]]=spgt[[i]][5:300,]
+    spgt[[i]]=spgt[[i]][5:250,]
   }
   ## 
   
@@ -196,10 +196,10 @@ singlefit<-function(prefix,aa=0.03,tt=10){
   hello$fit=predict(nlsfit)
   hello$residual=residuals(nlsfit)
   out1$directfit=coef(nlsfit)
-  hello=hello[c(1:296),]
+  hello=hello[c(1:246),]
   out1$shapiro=shapiro.test(hello$residual)
   out1$ks=ks.test(hello$residual,rnorm(length(hello$residual),0,sd(hello$residual)))
-  out1$LL=-296/2*(log(2*pi)+1-log(296)+log(sum(hello$residual^2)))
+  out1$LL=-246/2*(log(2*pi)+1-log(246)+log(sum(hello$residual^2)))
   out1$model=nlsfit
   out1$outdata=hello
   
@@ -227,8 +227,8 @@ trytwofit<-function (folder,i=0){
   }      
   aa1=runif(1,min=-0.02,max=0.1)
   bb1=runif(1,min=-0.02,max=0.1)
-  year1=runif(1,min=1,max=300)
-  year2=runif(1,min=1,max=300)
+  year1=runif(1,min=1,max=250)
+  year2=runif(1,min=1,max=250)
   
   ans1=try(twofit(folder,aa1[[1]],bb1[[1]],year1[[1]],year2[[1]]),silent = TRUE)
   if("try-error" %in% class(ans1)) ans1=trytwofit(folder,i+1)
@@ -250,7 +250,7 @@ trysinglefit<-function(folder,i=0){
     return(NULL)
   }      
   aa1=runif(1,min=-0.02,max=0.1)
-  year1=runif(1,min=1,max=300)
+  year1=runif(1,min=1,max=250)
   
   ans=try(singlefit(folder,aa=aa1[[1]],tt=year1[[1]]),silent=TRUE)
   if("try-error" %in% class(ans)) ans=trysinglefit(folder,i+1)
