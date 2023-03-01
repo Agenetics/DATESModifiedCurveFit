@@ -104,7 +104,7 @@ twofit<-function(prefix,aa=0.05,bb=0.04, tt=125,t22=10){
     strr=gsub(" ", "", strr)
     spgt[[i]]=read.table(strr)
     spgt[[i]]=spgt[[i]][,-c(2,4,5)]
-    spgt[[i]]=spgt[[i]][5:200,]
+    spgt[[i]]=spgt[[i]][5:300,]
   }
   
   nonlin2 <- function(d, a,b, t,t2) { a * exp(d/100*(-t+1)) + b * exp(d/100*(-t2+1))}
@@ -134,9 +134,9 @@ twofit<-function(prefix,aa=0.05,bb=0.04, tt=125,t22=10){
   hello$residual=residuals(nlsfit)
   out1$directfit=coef(nlsfit)
   
-  hello=hello[c(1:196),]
+  hello=hello[c(1:296),]
   out1$shapiro=shapiro.test(hello$residual)
-  out1$LL=-196/2*(log(2*pi)+1-log(196)+log(sum(hello$residual^2)))
+  out1$LL=-296/2*(log(2*pi)+1-log(296)+log(sum(hello$residual^2)))
   
   out1$model=nlsfit
   out1$outdata=hello
@@ -165,7 +165,7 @@ singlefit<-function(prefix,aa=0.03,tt=10){
     strr=gsub(" ", "", strr)
     spgt[[i]]=read.table(strr)
     spgt[[i]]=spgt[[i]][,-c(2,4,5)]
-    spgt[[i]]=spgt[[i]][5:200,]
+    spgt[[i]]=spgt[[i]][5:300,]
   }
   ## 
   
@@ -196,10 +196,10 @@ singlefit<-function(prefix,aa=0.03,tt=10){
   hello$fit=predict(nlsfit)
   hello$residual=residuals(nlsfit)
   out1$directfit=coef(nlsfit)
-  hello=hello[c(1:196),]
+  hello=hello[c(1:296),]
   out1$shapiro=shapiro.test(hello$residual)
   out1$ks=ks.test(hello$residual,rnorm(length(hello$residual),0,sd(hello$residual)))
-  out1$LL=-196/2*(log(2*pi)+1-log(196)+log(sum(hello$residual^2)))
+  out1$LL=-296/2*(log(2*pi)+1-log(296)+log(sum(hello$residual^2)))
   out1$model=nlsfit
   out1$outdata=hello
   
