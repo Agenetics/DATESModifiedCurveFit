@@ -28,4 +28,5 @@ Output: A dataframe with DATES exponential fitted output for 1 admixture (and 2 
 Examples:
 
 out1 <- runfits(pvalue=0.001,directorylist=dirs,foldernameformat="NoFormat");
+
 out1 <- runfits(directorylist=dirs,foldernameformat="Any",outputfilename="/home/user/output.tsv");
