@@ -1,0 +1,6 @@
+Package: DATESModifiedCurveFit
+Type: Package
+Title: Estimate admixture timing for 1 or 2 admixtures
+Version: 0.0.0.1
+RoxygenNote: 7.2.3
+Encoding: UTF-8
