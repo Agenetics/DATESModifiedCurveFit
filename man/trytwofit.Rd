@@ -4,7 +4,7 @@
 \alias{trytwofit}
 \title{Wrapper around twofit function}
 \usage{
-trytwofit(folder, i = 0)
+trytwofit(folder, i = 0, distance = distance)
 }
 \arguments{
 \item{folder}{Location of *out file}

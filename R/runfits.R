@@ -35,8 +35,8 @@ runfits<-function(pvalue=0.001,directorylist=NULL,foldernameformat="NoFormat",ou
       folder=paste(directorylist[i],"/",substring(filelist[[1]],1,c-3),"out:")
       folder=gsub(" ","",folder)
       headers=strsplit(str,"_")
-    
-      ans=trysinglefit(folder,0)
+      
+      ans=trysinglefit(folder,0,distance=distance)
     
     if (foldernameformat!="NoFormat"){
       for (j in 1:4){
@@ -46,14 +46,13 @@ runfits<-function(pvalue=0.001,directorylist=NULL,foldernameformat="NoFormat",ou
       out1[i,1]=str
       out1[i,2:4]=""
     }
-    
     out1[i,5]=ans$meant1
     out1[i,6]=ans$t1SE
     out1[i,7]=ans$shapiro$p.value
     out1[i,8:12]=""
     
     if (ans$shapiro$p.value < pvalue){
-      ans1=try100twofit(folder,0)
+      ans1=try100twofit(folder,0,distance=distance)
       if (!is.null(ans1)){
           if (ans1$meant1>ans1$meant2){
             out1[i,8]=ans1$meant1
@@ -96,7 +95,7 @@ runfits<-function(pvalue=0.001,directorylist=NULL,foldernameformat="NoFormat",ou
 #' @examples 
 #' out1 <- twofit("/home/user/Downloads/DATESexample/example/50_40_0.1_0.1/Simulation.out:");
 
-twofit<-function(prefix,aa=0.05,bb=0.04, tt=125,t22=10){
+twofit<-function(prefix,aa=0.05,bb=0.04, tt=125,t22=10,distance=distance){
   
   twofit<-data.frame()
   spgt<-list()
@@ -105,7 +104,7 @@ twofit<-function(prefix,aa=0.05,bb=0.04, tt=125,t22=10){
     strr=gsub(" ", "", strr)
     spgt[[i]]=read.table(strr)
     spgt[[i]]=spgt[[i]][,-c(2,4,5)]
-    spgt[[i]]=spgt[[i]][5:10*distance,]
+    spgt[[i]]=spgt[[i]][5:(10*distance),]
   }
   
   nonlin2 <- function(d, a,b, t,t2) { a * exp(d/100*(-t+1)) + b * exp(d/100*(-t2+1))}
@@ -135,7 +134,7 @@ twofit<-function(prefix,aa=0.05,bb=0.04, tt=125,t22=10){
   hello$residual=residuals(nlsfit)
   out1$directfit=coef(nlsfit)
   
-  hello=hello[c(1:10*distance-4),]
+  hello=hello[c(1:(10*distance-4)),]
   out1$shapiro=shapiro.test(hello$residual)
 
   out1$model=nlsfit
@@ -156,7 +155,7 @@ twofit<-function(prefix,aa=0.05,bb=0.04, tt=125,t22=10){
 #' out1 <- singlefit("/home/user/Downloads/DATESexample/example/50_40_0.1_0.1/Simulation.out:");
 
 
-singlefit<-function(prefix,aa=0.03,tt=10){
+singlefit<-function(prefix,aa=0.03,tt=10,distance=distance){
   
   singlefit<-data.frame()
   spgt<-list()
@@ -165,7 +164,7 @@ singlefit<-function(prefix,aa=0.03,tt=10){
     strr=gsub(" ", "", strr)
     spgt[[i]]=read.table(strr)
     spgt[[i]]=spgt[[i]][,-c(2,4,5)]
-    spgt[[i]]=spgt[[i]][5:10*distance,]
+    spgt[[i]]=spgt[[i]][5:(10*distance),]
   }
   ## 
   
@@ -196,7 +195,7 @@ singlefit<-function(prefix,aa=0.03,tt=10){
   hello$fit=predict(nlsfit)
   hello$residual=residuals(nlsfit)
   out1$directfit=coef(nlsfit)
-  hello=hello[c(1:10*distance-4),]
+  hello=hello[c(1:(10*distance-4)),]
   out1$shapiro=shapiro.test(hello$residual)
   out1$model=nlsfit
   out1$outdata=hello
@@ -204,7 +203,6 @@ singlefit<-function(prefix,aa=0.03,tt=10){
   
   
   rm(singlefit,spgt,i,j,nlsfit,nonlin,strr)
-  
   return(out1)
 }
 
@@ -219,7 +217,7 @@ singlefit<-function(prefix,aa=0.03,tt=10){
 
 
 
-trytwofit<-function (folder,i=0){
+trytwofit<-function (folder,i=0,distance=distance){
   if (i==50){
     return(NULL)
   }      
@@ -228,8 +226,8 @@ trytwofit<-function (folder,i=0){
   year1=runif(1,min=1,max=250)
   year2=runif(1,min=1,max=250)
   
-  ans1=try(twofit(folder,aa1[[1]],bb1[[1]],year1[[1]],year2[[1]]),silent = TRUE)
-  if("try-error" %in% class(ans1)) ans1=trytwofit(folder,i+1)
+  ans1=try(twofit(folder,aa1[[1]],bb1[[1]],year1[[1]],year2[[1]],distance=distance),silent = TRUE)
+  if("try-error" %in% class(ans1)) ans1=trytwofit(folder,i+1,distance=distance)
   return(ans1)
   
 }
@@ -243,15 +241,15 @@ trytwofit<-function (folder,i=0){
 #' @examples 
 #' out1 <- trysinglefit("/home/user/Downloads/DATESexample/example/50_40_0.1_0.1/Simulation.out:");
 
-trysinglefit<-function(folder,i=0){
+trysinglefit<-function(folder,i=0,distance=distance){
   if (i==50){
     return(NULL)
   }      
   aa1=runif(1,min=-0.02,max=0.1)
   year1=runif(1,min=1,max=250)
   
-  ans=try(singlefit(folder,aa=aa1[[1]],tt=year1[[1]]),silent=TRUE)
-  if("try-error" %in% class(ans)) ans=trysinglefit(folder,i+1)
+  ans=try(singlefit(folder,aa=aa1[[1]],tt=year1[[1]],distance=distance),silent=TRUE)
+  if("try-error" %in% class(ans)) ans=trysinglefit(folder,i+1,distance=distance)
   return(ans)
   
 }
@@ -266,13 +264,13 @@ trysinglefit<-function(folder,i=0){
 #' out1 <- try100twofit("/home/user/Downloads/DATESexample/example/50_40_0.1_0.1/Simulation.out:");
 
 
-try100twofit<-function(folder,i=0,jj=50){
+try100twofit<-function(folder,i=0,jj=50,distance=distance){
   
   z=0
   ans2=NULL
   ans1=NULL
   for (j in 1:jj){
-    ans2=trytwofit(folder,i=0)
+    ans2=trytwofit(folder,i=0,distance=distance)
     if (!is.null(ans2)){
       if ((ans2$meant1/ans2$t1SE + ans2$meant2/ans2$t2SE)>z){
         ans1=ans2 

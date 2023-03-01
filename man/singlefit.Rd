@@ -4,7 +4,7 @@
 \alias{singlefit}
 \title{Run single exponential decay fit}
 \usage{
-singlefit(prefix, aa = 0.03, tt = 10)
+singlefit(prefix, aa = 0.03, tt = 10, distance = distance)
 }
 \arguments{
 \item{prefix}{Location of *out file}

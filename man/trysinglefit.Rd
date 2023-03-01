@@ -4,7 +4,7 @@
 \alias{trysinglefit}
 \title{Wrapper around singlefit function}
 \usage{
-trysinglefit(folder, i = 0)
+trysinglefit(folder, i = 0, distance = distance)
 }
 \arguments{
 \item{folder}{Location of *out file}

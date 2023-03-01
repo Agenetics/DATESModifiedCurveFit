@@ -4,7 +4,7 @@
 \alias{twofit}
 \title{Run two exponential decay fit}
 \usage{
-twofit(prefix, aa = 0.05, bb = 0.04, tt = 125, t22 = 10)
+twofit(prefix, aa = 0.05, bb = 0.04, tt = 125, t22 = 10, distance = distance)
 }
 \arguments{
 \item{prefix}{Location of *out file}
