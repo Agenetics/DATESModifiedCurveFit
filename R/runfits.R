@@ -13,7 +13,7 @@
 #' @export
 
 
-runfits<-function(pvalue=0.001,directorylist=NULL,foldernameformat="NoFormat",outputfilename=NULL,distance=15){
+runfits<-function(directorylist=NULL,pvalue=0.001,foldernameformat="NoFormat",outputfilename=NULL,distance=15){
 
   
   out1=data.frame()

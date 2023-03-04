@@ -5,17 +5,17 @@
 \title{Run modified fits on various DATES output folders}
 \usage{
 runfits(
-  pvalue = 0.001,
   directorylist = NULL,
+  pvalue = 0.001,
   foldernameformat = "NoFormat",
   outputfilename = NULL,
   distance = 15
 )
 }
 \arguments{
-\item{pvalue}{P-value below which the program attempts a double exponential decay fit. Default 0.001}
-
 \item{directorylist}{List of directories with DATES output. Use list.dirs function on R to generate. Ensure all folders have DATES output. Required field.}
+
+\item{pvalue}{P-value below which the program attempts a double exponential decay fit. Default 0.001}
 
 \item{foldernameformat}{NoFormat = any folder name of choice, any other input = T1_T2_adm1_adm2 format for folder name where T1,T2 are admixture times (from simulation) and adm1,2 are admixture percentages in each wave (from simulation). Default = "NoFormat"}
 
