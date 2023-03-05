@@ -183,9 +183,8 @@ singlefit<-function(prefix,aa=0.03,tt=10,distance=distance){
     }
   }
   out1<-list()
-  out1$meant1=mean(singlefit$V2)
-  out1$t1SE <- sqrt(21/22 * sum((singlefit[,2]-out1$meant1)^2))
-  out1$alpha<- mean(singlefit$V1)
+  
+  out1$t1SE <- sqrt(21/22 * sum((singlefit[,2]-mean(singlefit$V2))^2))
   ##out1$constantC<-mean(singlefit$V3)
   
   strr=gsub(".out:",".fit",prefix)
@@ -193,6 +192,10 @@ singlefit<-function(prefix,aa=0.03,tt=10,distance=distance){
   hello=hello[,-c(3,4)]
   
   nlsfit <- nls(V2 ~ nonlin(V1,a,t), data=hello, start=start,control = nlc)
+  
+  out1$meant1=coef(nlsfit)[2]
+  out1$alpha<- coef(nlsfit)[1]
+  
   hello$fit=predict(nlsfit)
   hello$residual=residuals(nlsfit)
   out1$directfit=coef(nlsfit)
