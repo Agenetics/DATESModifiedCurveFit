@@ -1,19 +1,4 @@
-#' Run modified fits on various DATES output folders
-#'
-#' Estimate admixture timing for 1 or 2 admixtures
-#' @param pvalue P-value below which the program attempts a double exponential decay fit. Default 0.001
-#' @param directorylist List of directories with DATES output. Use list.dirs function on R to generate. Ensure all folders have DATES output. Required field.
-#' @param foldernameformat NoFormat = any folder name of choice, any other input = T1_T2_adm1_adm2 format for folder name where T1,T2 are admixture times (from simulation) and adm1,2 are admixture percentages in each wave (from simulation). Default = "NoFormat"
-#' @param outputfilename Optional: Specify file name. Output is written to file in TSV format.
-#' @param distance Maximum distance till which to curve fit, in cM. Default 15 cM.
-#' @return A dataframe with DATES exponential fitted output for 1 admixture (and 2 in case of p-value below threshold)
-#' @examples 
-#' out1 <- runfits(pvalue=0.001,directorylist=dirs,foldernameformat="NoFormat");
-#' out1 <- runfits(directorylist=dirs,foldernameformat="Any",outputfilename="/home/user/output.tsv");
-#' @export
-
-
-runfits<-function(directorylist=NULL,pvalue=0.001,foldernameformat="NoFormat",outputfilename=NULL,distance=15){
+runfits<-function(directorylist=NULL,pvalue=0.001,foldernameformat="NoFormat",outputfilename=NULL){
 
   
   out1=data.frame()
@@ -35,8 +20,8 @@ runfits<-function(directorylist=NULL,pvalue=0.001,foldernameformat="NoFormat",ou
       folder=paste(directorylist[i],"/",substring(filelist[[1]],1,c-3),"out:")
       folder=gsub(" ","",folder)
       headers=strsplit(str,"_")
-      
-      ans=trysinglefit(folder,0,distance=distance)
+    
+      ans=trysinglefit(folder,0)
     
     if (foldernameformat!="NoFormat"){
       for (j in 1:4){
@@ -46,13 +31,14 @@ runfits<-function(directorylist=NULL,pvalue=0.001,foldernameformat="NoFormat",ou
       out1[i,1]=str
       out1[i,2:4]=""
     }
+    
     out1[i,5]=ans$meant1
     out1[i,6]=ans$t1SE
     out1[i,7]=ans$shapiro$p.value
     out1[i,8:12]=""
     
     if (ans$shapiro$p.value < pvalue){
-      ans1=try100twofit(folder,0,distance=distance)
+      ans1=try100twofit(folder,0)
       if (!is.null(ans1)){
           if (ans1$meant1>ans1$meant2){
             out1[i,8]=ans1$meant1
@@ -87,15 +73,7 @@ runfits<-function(directorylist=NULL,pvalue=0.001,foldernameformat="NoFormat",ou
   return(out1)
 }
 
-#' Run two exponential decay fit
-#'
-#' Estimate admixture timing for 2 admixtures
-#' @param prefix Location of *out file
-#' @return A dataframe with 2 Admixture time estimates, standard errors, Shapiro-Wilk p-value of fit
-#' @examples 
-#' out1 <- twofit("/home/user/Downloads/DATESexample/example/50_40_0.1_0.1/Simulation.out:");
-
-twofit<-function(prefix,aa=0.05,bb=0.04, tt=125,t22=10,distance=distance){
+twofit<-function(prefix,aa=0.05,bb=0.04, tt=125,t22=10){
   
   twofit<-data.frame()
   spgt<-list()
@@ -104,7 +82,7 @@ twofit<-function(prefix,aa=0.05,bb=0.04, tt=125,t22=10,distance=distance){
     strr=gsub(" ", "", strr)
     spgt[[i]]=read.table(strr)
     spgt[[i]]=spgt[[i]][,-c(2,4,5)]
-    spgt[[i]]=spgt[[i]][5:(10*distance),]
+    spgt[[i]]=spgt[[i]][5:300,]
   }
   
   nonlin2 <- function(d, a,b, t,t2) { a * exp(d/100*(-t+1)) + b * exp(d/100*(-t2+1))}
@@ -118,9 +96,12 @@ twofit<-function(prefix,aa=0.05,bb=0.04, tt=125,t22=10,distance=distance){
     }
   }
   out1<-list()
-  
-  out1$t1SE <- sqrt(21/22 * sum((twofit[,3]-mean(twofit$V3))^2))
-  out1$t2SE <- sqrt(21/22 * sum((twofit[,4]-mean(twofit$V4))^2))
+  out1$meant1=mean(twofit$V3)
+  out1$meant2=mean(twofit$V4)
+  out1$alpha=mean(twofit$V1)
+  out1$beta=mean(twofit$V2)
+  out1$t1SE <- sqrt(21/22 * sum((twofit[,3]-out1$meant1)^2))
+  out1$t2SE <- sqrt(21/22 * sum((twofit[,4]-out1$meant2)^2))
   
   strr=gsub(".out:",".fit",prefix)
   hello=read.table(strr,header=FALSE)
@@ -130,14 +111,11 @@ twofit<-function(prefix,aa=0.05,bb=0.04, tt=125,t22=10,distance=distance){
   hello$fit=predict(nlsfit)
   hello$residual=residuals(nlsfit)
   out1$directfit=coef(nlsfit)
-  out1$meant1=coef(nlsfit)[3]
-  out1$meant2=coef(nlsfit)[4]
-  out1$alpha=coef(nlsfit)[1]
-  out1$beta=coef(nlsfit)[2]
   
-  hello=hello[c(1:(10*distance-4)),]
+  hello=hello[c(1:296),]
   out1$shapiro=shapiro.test(hello$residual)
-
+  out1$LL=-296/2*(log(2*pi)+1-log(296)+log(sum(hello$residual^2)))
+  
   out1$model=nlsfit
   out1$outdata=hello
   
@@ -146,17 +124,7 @@ twofit<-function(prefix,aa=0.05,bb=0.04, tt=125,t22=10,distance=distance){
   return(out1)
 }
 
-
-#' Run single exponential decay fit
-#'
-#' Estimate admixture timing for 1 admixtures
-#' @param prefix Location of *out file
-#' @return A dataframe with 1 Admixture time estimates, standard error, Shapiro-Wilk p-value of fit
-#' @examples 
-#' out1 <- singlefit("/home/user/Downloads/DATESexample/example/50_40_0.1_0.1/Simulation.out:");
-
-
-singlefit<-function(prefix,aa=0.03,tt=10,distance=distance){
+singlefit<-function(prefix,aa=0.03,tt=10){
   
   singlefit<-data.frame()
   spgt<-list()
@@ -165,7 +133,7 @@ singlefit<-function(prefix,aa=0.03,tt=10,distance=distance){
     strr=gsub(" ", "", strr)
     spgt[[i]]=read.table(strr)
     spgt[[i]]=spgt[[i]][,-c(2,4,5)]
-    spgt[[i]]=spgt[[i]][5:(10*distance),]
+    spgt[[i]]=spgt[[i]][5:300,]
   }
   ## 
   
@@ -196,82 +164,55 @@ singlefit<-function(prefix,aa=0.03,tt=10,distance=distance){
   hello$fit=predict(nlsfit)
   hello$residual=residuals(nlsfit)
   out1$directfit=coef(nlsfit)
-  hello=hello[c(1:(10*distance-4)),]
+  hello=hello[c(1:296),]
   out1$shapiro=shapiro.test(hello$residual)
+  out1$ks=ks.test(hello$residual,rnorm(length(hello$residual),0,sd(hello$residual)))
+  out1$LL=-296/2*(log(2*pi)+1-log(296)+log(sum(hello$residual^2)))
   out1$model=nlsfit
   out1$outdata=hello
   
   
   
   rm(singlefit,spgt,i,j,nlsfit,nonlin,strr)
+  
   return(out1)
 }
 
-
-#' Wrapper around twofit function
-#'
-#' Choose initial values for NLS fitting till solution converges (default tries = 50 tries with random initial values)
-#' @param folder Location of *out file
-#' @return A dataframe with 2 Admixture time estimates, standard errors, Shapiro-Wilk p-value of fit; NULL output if no convergent solution
-#' @examples 
-#' out1 <- trytwofit("/home/user/Downloads/DATESexample/example/50_40_0.1_0.1/Simulation.out:");
-
-
-
-trytwofit<-function (folder,i=0,distance=distance){
+trytwofit<-function (folder,i=0){
   if (i==50){
     return(NULL)
   }      
   aa1=runif(1,min=-0.02,max=0.1)
   bb1=runif(1,min=-0.02,max=0.1)
-  year1=runif(1,min=1,max=250)
-  year2=runif(1,min=1,max=250)
+  year1=runif(1,min=1,max=300)
+  year2=runif(1,min=1,max=300)
   
-  ans1=try(twofit(folder,aa1[[1]],bb1[[1]],year1[[1]],year2[[1]],distance=distance),silent = TRUE)
-  if("try-error" %in% class(ans1)) ans1=trytwofit(folder,i+1,distance=distance)
+  ans1=try(twofit(folder,aa1[[1]],bb1[[1]],year1[[1]],year2[[1]]),silent = TRUE)
+  if("try-error" %in% class(ans1)) ans1=trytwofit(folder,i+1)
   return(ans1)
   
 }
 
-
-#' Wrapper around singlefit function
-#'
-#' Choose initial values for NLS fitting till solution converges (default tries = 50 tries with random initial values)
-#' @param folder Location of *out file
-#' @return A dataframe with 1 Admixture time estimates, standard error, Shapiro-Wilk p-value of fit; NULL output if no convergent solution
-#' @examples 
-#' out1 <- trysinglefit("/home/user/Downloads/DATESexample/example/50_40_0.1_0.1/Simulation.out:");
-
-trysinglefit<-function(folder,i=0,distance=distance){
+trysinglefit<-function(folder,i=0){
   if (i==50){
     return(NULL)
   }      
   aa1=runif(1,min=-0.02,max=0.1)
-  year1=runif(1,min=1,max=250)
+  year1=runif(1,min=1,max=300)
   
-  ans=try(singlefit(folder,aa=aa1[[1]],tt=year1[[1]],distance=distance),silent=TRUE)
-  if("try-error" %in% class(ans)) ans=trysinglefit(folder,i+1,distance=distance)
+  ans=try(singlefit(folder,aa=aa1[[1]],tt=year1[[1]]),silent=TRUE)
+  if("try-error" %in% class(ans)) ans=trysinglefit(folder,i+1)
   return(ans)
   
 }
 
-
-#' Wrapper around trytwofit function
-#'
-#' Run the trytwofit function 5 times and choose the outpur with the highest Z scores
-#' @param folder Location of *out file
-#' @return A dataframe with 2 Admixture time estimates, standard errors, Shapiro-Wilk p-value of fit; NULL output if no convergent solution
-#' @examples 
-#' out1 <- try100twofit("/home/user/Downloads/DATESexample/example/50_40_0.1_0.1/Simulation.out:");
-
-
-try100twofit<-function(folder,i=0,jj=50,distance=distance){
+try100twofit<-function(folder,i=0,jj=50){
   
   z=0
   ans2=NULL
   ans1=NULL
   for (j in 1:jj){
-    ans2=trytwofit(folder,i=0,distance=distance)
+    ans2=trytwofit(folder,i=0)
     if (!is.null(ans2)){
       if ((ans2$meant1/ans2$t1SE + ans2$meant2/ans2$t2SE)>z){
         ans1=ans2 
